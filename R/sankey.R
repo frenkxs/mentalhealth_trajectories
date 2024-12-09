@@ -130,12 +130,6 @@ ever_dd$nodes$order[grepl("Com",   ever_dd$nodes$name)] <- c(260, 360, 460)
 ever_dd$nodes$order[grepl("none",  ever_dd$nodes$name)] <- c(270, 370, 470)
 ever_dd$nodes$order[grepl("M_",   ever_dd$nodes$name)] <- c(380, 480)
 
-ever_dd$nodes$order[grepl("DD", ever_dd$nodes$name)] <- c(100, 200, 300, 400) 
-ever_dd$nodes$order[grepl("AD",   ever_dd$nodes$name)] <- c(250, 350, 450)
-ever_dd$nodes$order[grepl("Com",   ever_dd$nodes$name)] <- c(260, 360, 460)
-ever_dd$nodes$order[grepl("none",  ever_dd$nodes$name)] <- c(270, 370, 470)
-ever_dd$nodes$order[grepl("M_",   ever_dd$nodes$name)] <- c(380, 480)
-
 ever_dd$nodes <- arrange(ever_dd$nodes, order)
 
 # ad add to the nodes
@@ -307,6 +301,7 @@ curr_ddad$nodes <- curr_ddad$nodes |>
 
 
 # define colours ---------
+<<<<<<< HEAD
 
 # colours:
 # none: #44BB99
@@ -398,7 +393,7 @@ p7 <- plot_sankey(df = ever_ddad, cl = clr_ever_ddad, filename =  "trajectories_
 
 # fix formatting
 htmlwidgets::onRender(
-    p7,
+    p3,
     '
     function(el, x) {
         d3.selectAll(".node text").attr("text-anchor", "begin").attr("x", 30);
@@ -413,5 +408,4 @@ htmlwidgets::saveWidget(p4, file = here::here("data", "trajectories_curr_ad.html
 htmlwidgets::saveWidget(p5, file = here::here("data", "trajectories_curr_ddad.html"))
 htmlwidgets::saveWidget(p6, file = here::here("data", "trajectories_ever_ad.html"))
 htmlwidgets::saveWidget(p7, file = here::here("data", "trajectories_ever_ddad.html"))
-
 
