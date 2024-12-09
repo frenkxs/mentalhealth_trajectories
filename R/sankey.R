@@ -19,6 +19,7 @@ data_woman <- readxl::read_excel("data/df_sex.xls", sheet = "vrouw",
 
 
 # remove the redundant info from the trajectory definition
+data[101:700, 'tra2'] <- lapply(data[101:700, "tra2"], function(x) trimws(substring(x, 5)))
 data_man[101:700, 'tra2'] <- lapply(data_man[101:700, "tra2"], function(x) trimws(substring(x, 5)))
 data_woman[101:700, 'tra2'] <- lapply(data_woman[101:700, "tra2"], function(x) trimws(substring(x, 5)))
 
@@ -39,30 +40,39 @@ data <- data |>
                   D = paste0(D, "_D"))
 
 # a function to convert the data into a structure ready fot NetworkD3
-get_sankey_data <- function(df = data, gr = 1, baseline) {
+get_sankey_data <- function(df = data, gr = 1, baseline, 
+                            by_sex = FALSE, by_age = FALSE) {
+    
+    columns_to_select <- c("id", "from", "to", "n")
+    if (by_sex) columns_to_select <- c(columns_to_select, "sex")
+    if (by_age) columns_to_select <- c(columns_to_select, "age")
     
     d1 <- df |>
         filter(group == gr) |>
         rename(from = A,
                to = B) |>
-        dplyr::select(id, from, to, n, sex) 
+        dplyr::select(any_of(columns_to_select)) 
     
     
     d2 <- df |>
         filter(group == gr) |>
         rename(from = B,
                to = C) |>
-        dplyr::select(id, from, to, n, sex) 
+        dplyr::select(any_of(columns_to_select)) 
     
     
     d3 <- df |>
         filter(group == gr) |>
         rename(from = C,
                to = D) |>
-        dplyr::select(id, from, to, n, sex) 
+        dplyr::select(any_of(columns_to_select)) 
+    
+    columns_to_group <- c("from", "to")
+    if (by_sex) columns_to_group <- c(columns_to_group, "sex")
+    if (by_age) columns_to_group <- c(columns_to_group, "age")
     
     dat <- bind_rows(d1, d2, d3) |>
-        group_by(from, to, sex) |>
+        group_by_at(columns_to_group) |>
         summarise(n = sum(n))
     
     
@@ -88,12 +98,7 @@ none$nodes$order[grepl("AD",   none$nodes$name)] <- c(260, 360, 460)
 none$nodes$order[grepl("Com",  none$nodes$name)] <- c(270, 370, 470)
 none$nodes$order[grepl("M_",   none$nodes$name)] <- c(380, 480)
 
-# alternative order with none and lost to follow-up are always on the bottom
-none$nodes$order[grepl("DD", none$nodes$name)] <- c(200, 300, 400) 
-none$nodes$order[grepl("AD",   none$nodes$name)] <- c(250, 350, 450)
-none$nodes$order[grepl("Com",   none$nodes$name)] <- c(260, 360, 460)
-none$nodes$order[grepl("none",  none$nodes$name)] <- c(100, 270, 370, 470)
-none$nodes$order[grepl("M_",   none$nodes$name)] <- c(380, 480)
+
 
 none$nodes <- arrange(none$nodes, order)
 
@@ -117,11 +122,18 @@ none$nodes <- none$nodes |>
 
 ever_dd <- get_sankey_data(df = data, gr = 2)
 
-# order nodes so that none is always on top and missing are on the bottom
+# order nodes so that the index disease (DD) is always on top and missing are on
+# the bottom
 ever_dd$nodes$order[grepl("DD", ever_dd$nodes$name)] <- c(100, 200, 300, 400) 
-ever_dd$nodes$order[grepl("none",   ever_dd$nodes$name)] <- c(250, 350, 450)
-ever_dd$nodes$order[grepl("AD",   ever_dd$nodes$name)] <- c(260, 360, 460)
-ever_dd$nodes$order[grepl("Com",  ever_dd$nodes$name)] <- c(270, 370, 470)
+ever_dd$nodes$order[grepl("AD",   ever_dd$nodes$name)] <- c(250, 350, 450)
+ever_dd$nodes$order[grepl("Com",   ever_dd$nodes$name)] <- c(260, 360, 460)
+ever_dd$nodes$order[grepl("none",  ever_dd$nodes$name)] <- c(270, 370, 470)
+ever_dd$nodes$order[grepl("M_",   ever_dd$nodes$name)] <- c(380, 480)
+
+ever_dd$nodes$order[grepl("DD", ever_dd$nodes$name)] <- c(100, 200, 300, 400) 
+ever_dd$nodes$order[grepl("AD",   ever_dd$nodes$name)] <- c(250, 350, 450)
+ever_dd$nodes$order[grepl("Com",   ever_dd$nodes$name)] <- c(260, 360, 460)
+ever_dd$nodes$order[grepl("none",  ever_dd$nodes$name)] <- c(270, 370, 470)
 ever_dd$nodes$order[grepl("M_",   ever_dd$nodes$name)] <- c(380, 480)
 
 ever_dd$nodes <- arrange(ever_dd$nodes, order)
@@ -150,9 +162,9 @@ ever_ad <- get_sankey_data(df = data, gr = 3)
 
 # order nodes so that none is always on top and missing are on the bottom
 ever_ad$nodes$order[grepl("AD", ever_ad$nodes$name)] <- c(100, 200, 300, 400) 
-ever_ad$nodes$order[grepl("none",   ever_ad$nodes$name)] <- c(250, 350, 450)
-ever_ad$nodes$order[grepl("DD",   ever_ad$nodes$name)] <- c(260, 360, 460)
-ever_ad$nodes$order[grepl("Com",  ever_ad$nodes$name)] <- c(270, 370, 470)
+ever_ad$nodes$order[grepl("Com",   ever_ad$nodes$name)] <- c(250, 350, 450)
+ever_ad$nodes$order[grepl("none",   ever_ad$nodes$name)] <- c(260, 360, 460)
+ever_ad$nodes$order[grepl("DD",  ever_ad$nodes$name)] <- c(270, 370, 470)
 ever_ad$nodes$order[grepl("M_",   ever_ad$nodes$name)] <- c(380, 480)
 
 ever_ad$nodes <- arrange(ever_ad$nodes, order)
@@ -212,9 +224,9 @@ curr_ad <- get_sankey_data(df = data, gr = 6)
 
 # order nodes so that none is always on top and missing are on the bottom
 curr_ad$nodes$order[grepl("AD", curr_ad$nodes$name)] <- c(100, 200, 300, 400) 
-curr_ad$nodes$order[grepl("none",   curr_ad$nodes$name)] <- c(250, 350, 450)
-curr_ad$nodes$order[grepl("DD",   curr_ad$nodes$name)] <- c(260, 360, 460)
-curr_ad$nodes$order[grepl("Com",  curr_ad$nodes$name)] <- c(270, 370, 470)
+curr_ad$nodes$order[grepl("Com",   curr_ad$nodes$name)] <- c(250, 350, 450)
+curr_ad$nodes$order[grepl("none",   curr_ad$nodes$name)] <- c(260, 360, 460)
+curr_ad$nodes$order[grepl("DD",  curr_ad$nodes$name)] <- c(270, 370, 470)
 curr_ad$nodes$order[grepl("M_",   curr_ad$nodes$name)] <- c(380, 480)
 
 curr_ad$nodes <- arrange(curr_ad$nodes, order)
@@ -240,9 +252,9 @@ curr_dd <- get_sankey_data(df = data, gr = 5)
 
 # order nodes so that none is always on top and missing are on the bottom
 curr_dd$nodes$order[grepl("DD", curr_dd$nodes$name)] <- c(100, 200, 300, 400) 
-curr_dd$nodes$order[grepl("none",   curr_dd$nodes$name)] <- c(250, 350, 450)
-curr_dd$nodes$order[grepl("AD",   curr_dd$nodes$name)] <- c(260, 360, 460)
-curr_dd$nodes$order[grepl("Com",  curr_dd$nodes$name)] <- c(270, 370, 470)
+curr_dd$nodes$order[grepl("AD",   curr_dd$nodes$name)] <- c(250, 350, 450)
+curr_dd$nodes$order[grepl("Com",   curr_dd$nodes$name)] <- c(260, 360, 460)
+curr_dd$nodes$order[grepl("none",  curr_dd$nodes$name)] <- c(270, 370, 470)
 curr_dd$nodes$order[grepl("M_",   curr_dd$nodes$name)] <- c(380, 480)
 
 curr_dd$nodes <- arrange(curr_dd$nodes, order)
@@ -270,8 +282,8 @@ curr_ddad <- get_sankey_data(df = data, gr = 7)
 # order nodes so that none is always on top and missing are on the bottom
 curr_ddad$nodes$order[grepl("Com", curr_ddad$nodes$name)] <- c(100, 200, 300, 400) 
 curr_ddad$nodes$order[grepl("none",   curr_ddad$nodes$name)] <- c(250, 350, 450)
-curr_ddad$nodes$order[grepl("AD",   curr_ddad$nodes$name)] <- c(260, 360, 460)
-curr_ddad$nodes$order[grepl("DD",  curr_ddad$nodes$name)] <- c(270, 370, 470)
+curr_ddad$nodes$order[grepl("DD",   curr_ddad$nodes$name)] <- c(260, 360, 460)
+curr_ddad$nodes$order[grepl("AD",  curr_ddad$nodes$name)] <- c(270, 370, 470)
 curr_ddad$nodes$order[grepl("M_",   curr_ddad$nodes$name)] <- c(380, 480)
 
 curr_ddad$nodes <- arrange(curr_ddad$nodes, order)
@@ -295,24 +307,73 @@ curr_ddad$nodes <- curr_ddad$nodes |>
 
 
 # define colours ---------
-clr_none <- 'd3.scaleOrdinal() .domain(["No depressive or anxiety disorder", "Anxiety disorder", "Depressive disorder", "Both depressive and anxiety disorder", "Lost to follow-up"]) .range(["#124E78", "#F0F0C9", "#F2BB05", "#EE6C4D", "grey"])'
 
-# alternative colours
-clr_none <- 'd3.scaleOrdinal() .domain(["No depressive or anxiety disorder", "Anxiety disorder", "Depressive disorder", "Both depressive and anxiety disorder", "Lost to follow-up", "men", "women"]) .range(["white", "#004488", "#DDAA33", "#BB5566", "black", "lightgrey", "darkgrey"])'
-clr_none <- 'd3.scaleOrdinal() .domain(["No depressive or anxiety disorder", "Anxiety disorder", "Depressive disorder", "Both depressive and anxiety disorder", "Lost to follow-up", "men", "women"]) .range(["#CCDDAA", "#77AADD", "#EEDD88", "#FFAABB", "#DDDDDD", "lightgrey", "darkgrey"])'
+# colours:
+# none: #44BB99
 
+# dd: #77AADD
+# history of dd: #99DDFF
 
-clr_ever_dd <- 'd3.scaleOrdinal() .domain(["History of depressive disorder", "Depressive disorder", "No depressive or anxiety disorder","Anxiety disorder", "Both depressive and anxiety disorder", "Lost to follow-up"]) .range(["#F2BB05", "#F2BB05", "#124E78", "#F0F0C9", "#EE6C4D", "grey"])'
+# ad: #BBCC33
+# history of ad: #EEDD88
 
-clr_ever_ad <- 'd3.scaleOrdinal() .domain(["History of anxiety disorder", "Anxiety disorder", "Depressive disorder", "No depressive or anxiety disorder", "Both depressive and anxiety disorder", "Lost to follow-up"]) .range(["#F0F0C9", "#F0F0C9", "#124E78", "#F2BB05", "#EE6C4D", "grey"])'
+# both depressive and anxiety disorder: #CC6677
+# history of both depressive and anxiety disorder: #EE99AA
 
-clr_ever_ddad <- 'd3.scaleOrdinal() .domain(["History of both depressive and anxiety disorder", "Both depressive and anxiety disorder",  "Depressive disorder", "No depressive or anxiety disorder", "Anxiety disorder", "Lost to follow-up"]) .range(["#EE6C4D", "#EE6C4D", "#124E78", "#F2BB05", "#F0F0C9", "grey"])'
+# lost to follow-up: #DDDDDD
 
-clr_curr_dd <- 'd3.scaleOrdinal() .domain(["Depressive disorder", "No depressive or anxiety disorder","Anxiety disorder", "Both depressive and anxiety disorder", "Lost to follow-up"]) .range(["#F2BB05", "#124E78",  "#F0F0C9", "#EE6C4D", "grey"])'
+clr_none <- 'd3.scaleOrdinal() .domain(["No depressive or anxiety disorder", 
+                                        "Anxiety disorder", 
+                                        "Depressive disorder", 
+                                        "Both depressive and anxiety disorder", 
+                                        "Lost to follow-up"]) 
+.range(["#44BB99", "#77AADD", "#BBCC33", "#CC6677", "#DDDDDD"])'
 
-clr_curr_ad <- 'd3.scaleOrdinal() .domain(["Anxiety disorder", "Depressive disorder", "No depressive or anxiety disorder", "Both depressive and anxiety disorder", "Lost to follow-up"]) .range(["#F0F0C9", "#124E78", "#F2BB05", "#EE6C4D", "grey"])'
+clr_ever_dd <- 'd3.scaleOrdinal() .domain(["History of depressive disorder", 
+                                            "Depressive disorder", 
+                                            "Anxiety disorder", 
+                                            "Both depressive and anxiety disorder", 
+                                            "No depressive or anxiety disorder", 
+                                            "Lost to follow-up"]) 
+.range(["#99DDFF", "#77AADD", "#BBCC33", "#CC6677", "#44BB99", "#DDDDDD"])'
 
-clr_curr_ddad <- 'd3.scaleOrdinal() .domain(["Both depressive and anxiety disorder",  "Depressive disorder", "No depressive or anxiety disorder", "Anxiety disorder", "Lost to follow-up"]) .range(["#EE6C4D", "#124E78", "#F0F0C9", "#F2BB05", "grey"])'
+clr_ever_ad <- 'd3.scaleOrdinal() .domain(["History of anxiety disorder", 
+                                            "Anxiety disorder", 
+                                            "Both depressive and anxiety disorder",                                           
+                                            "No depressive or anxiety disorder",                                     
+                                            "Depressive disorder", 
+                                            "Lost to follow-up"]) 
+.range(["#EEDD88", "#BBCC33", "#CC6677", "#44BB99", "#77AADD", "#DDDDDD"])'
+
+clr_ever_ddad <- 'd3.scaleOrdinal() .domain(["History of both depressive and anxiety disorder", 
+                                            "Both depressive and anxiety disorder",  
+                                            "No depressive or anxiety disorder",
+                                            "Depressive disorder", 
+                                            "Anxiety disorder", 
+                                            "Lost to follow-up"]) 
+.range(["#EE99AA", "#CC6677", "#44BB99", "#77AADD", "#BBCC33", "#DDDDDD"])'
+
+clr_curr_dd <- 'd3.scaleOrdinal() .domain(["Depressive disorder", 
+                                            "Anxiety disorder", 
+                                            "Both depressive and anxiety disorder", 
+                                            "No depressive or anxiety disorder",
+                                            "Lost to follow-up"]) 
+.range(["#77AADD", "#BBCC33",  "#CC6677", "#44BB99", "#DDDDDD"])'
+
+clr_curr_ad <- 'd3.scaleOrdinal() .domain(["Anxiety disorder", 
+                                            "Both depressive and anxiety disorder", 
+                                            "No depressive or anxiety disorder", 
+                                            "Depressive disorder", 
+                                            "Lost to follow-up"]) 
+.range(["#BBCC33", "#CC6677", "#44BB99", "#77AADD", "#DDDDDD"])'
+
+clr_curr_ddad <- 'd3.scaleOrdinal() .domain(["Both depressive and anxiety disorder",  
+                                            "No depressive or anxiety disorder", 
+                                            "Depressive disorder", 
+                                            "Anxiety disorder", 
+                                            "Lost to follow-up"]) 
+.range(["#CC6677", "#44BB99", "#77AADD", "#BBCC33", "#DDDDDD"])'
+
 
 
 #  Final plots ----
@@ -321,9 +382,9 @@ plot_sankey <- function(df, cl, filename){
 
     networkD3::sankeyNetwork(Links = df$edges, Nodes = df$nodes, 
                               Source = "IDsource", Target = "IDtarget",
-                              NodeID = "name", Value = "n", LinkGroup = "sex",
+                              NodeID = "name", Value = "n", 
                               nodePadding = 13, colourScale = cl, 
-                              iteration = 0, fontSize = 15, fontFamily = "Calibri", 
+                              iteration = 0, fontSize = 15, fontFamily = "Arial", 
                               nodeWidth = 25, margin = list(left = 230))
 }
 
@@ -335,10 +396,9 @@ p5 <- plot_sankey(df = curr_ddad, cl = clr_curr_ddad, filename =  "trajectories_
 p6 <- plot_sankey(df = ever_ad, cl = clr_ever_ad, filename =      "trajectories_ever_ad.html")
 p7 <- plot_sankey(df = ever_ddad, cl = clr_ever_ddad, filename =  "trajectories_ever_ddad.html")
 
-
 # fix formatting
 htmlwidgets::onRender(
-    p1,
+    p7,
     '
     function(el, x) {
         d3.selectAll(".node text").attr("text-anchor", "begin").attr("x", 30);
