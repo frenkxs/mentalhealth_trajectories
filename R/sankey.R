@@ -315,25 +315,25 @@ curr_ddad$nodes <- curr_ddad$nodes |>
 
 # lost to follow-up: #DDDDDD
 
-clr_none <- 'd3.scaleOrdinal() .domain(["none", "dd", "ad", "ddad", "lfu"]) 
+clr_none <- 'd3.scaleOrdinal() .domain(["No depressive or anxiety disorder", "Depressive disorder", "Anxiety disorder", "Both depressive and anxiety disorder", "Lost to follow-up"])
 .range(["#44BB99", "#77AADD", "#BBCC33", "#CC6677", "#DDDDDD"])'
 
-clr_ever_dd <- 'd3.scaleOrdinal() .domain(["hdd", "dd", "ad", "ddad", "none", "lfu"]) 
+clr_ever_dd <- 'd3.scaleOrdinal() .domain(["History of depressive disorder", "Depressive disorder", "Anxiety disorder", "Both depressive and anxiety disorder", "No depressive or anxiety disorder", "Lost to follow-up"]) 
 .range(["#99DDFF", "#77AADD", "#BBCC33", "#CC6677", "#44BB99", "#DDDDDD"])'
 
-clr_ever_ad <- 'd3.scaleOrdinal() .domain(["had", "ad", "dd", "ddad", "none", "lfu"]) 
+clr_ever_ad <- 'd3.scaleOrdinal() .domain(["History of anxiety disorder", "Anxiety disorder", "Depressive disorder", "Both depressive and anxiety disorder", "No depressive or anxiety disorder", "Lost to follow-up"]) 
 .range(["#E3EBAD", "#BBCC33", "#77AADD", "#CC6677", "#44BB99", "#DDDDDD"])'
 
-clr_ever_ddad <- 'd3.scaleOrdinal() .domain(["hddad", "ddad", "dd", "ad", "none", "lfu"]) 
+clr_ever_ddad <- 'd3.scaleOrdinal() .domain(["History of both depressive and anxiety disorder", "Both depressive and anxiety disorder", "Depressive disorder", "Anxiety disorder", "No depressive or anxiety disorder", "Lost to follow-up"]) 
 .range(["#EE99AA", "#CC6677", "#77AADD", "#BBCC33", "#44BB99", "#DDDDDD"])'
 
-clr_curr_dd <- 'd3.scaleOrdinal() .domain(["dd", "ad", "ddad", "none", "lfu"]) 
+clr_curr_dd <- 'd3.scaleOrdinal() .domain(["Depressive disorder", "Anxiety disorder", "Both depressive and anxiety disorder", "No depressive or anxiety disorder", "Lost to follow-up"]) 
 .range(["#77AADD", "#BBCC33",  "#CC6677", "#44BB99", "#DDDDDD"])'
 
-clr_curr_ad <- 'd3.scaleOrdinal() .domain(["ad", "dd", "ddad", "none", "lfu"]) 
+clr_curr_ad <- 'd3.scaleOrdinal() .domain(["Anxiety disorder", "Depressive disorder", "Both depressive and anxiety disorder", "No depressive or anxiety disorder", "Lost to follow-up"]) 
 .range(["#BBCC33", "#77AADD", "#CC6677", "#44BB99", "#DDDDDD"])'
 
-clr_curr_ddad <- 'd3.scaleOrdinal() .domain(["ddad", "dd", "ad", "none", "lfu"]) 
+clr_curr_ddad <- 'd3.scaleOrdinal() .domain(["Both depressive and anxiety disorder", "Depressive disorder", "Anxiety disorder", "No depressive or anxiety disorder", "Lost to follow-up"]) 
 .range(["#CC6677", "#77AADD", "#BBCC33", "#44BB99", "#DDDDDD"])'
 
 
@@ -365,6 +365,9 @@ js_string <-
         d3.selectAll(".node text").attr("text-anchor", "begin").attr("x", 30);
     }
     '
+
+# save --------------------------------------------------------------------
+
 
 p1 <- htmlwidgets::onRender(p1, js_string) 
 htmlwidgets::saveWidget(p1, file = here::here("data", "trajectories_none.html"))
